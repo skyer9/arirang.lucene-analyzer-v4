@@ -1,8 +1,8 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.argo</groupId>
-  <artifactId>arirang-analyzer-4_6</artifactId>
-  <version>1.0.0</version>
+  <artifactId>arirang-analyzer</artifactId>
+  <version>4.7.2</version>
   <build>
     <sourceDirectory>src</sourceDirectory>
     <resources>
@@ -21,21 +21,19 @@
           <source>1.6</source>
           <target>1.6</target>
         </configuration>
-      </plugin> 
+      </plugin>
     </plugins>
   </build>
   <dependencies>
   	<dependency>
   		<groupId>org.apache.lucene</groupId>
   		<artifactId>lucene-core</artifactId>
-  		<version>4.6.0</version>
-  		<scope>test</scope>
+  		<version>4.7.2</version>
   	</dependency>
   	<dependency>
   		<groupId>org.apache.lucene</groupId>
   		<artifactId>lucene-analyzers-common</artifactId>
-  		<version>4.6.0</version>
-  		<scope>test</scope>
+  		<version>4.7.2</version>
   	</dependency>
   	<dependency>
   		<groupId>org.apache.commons</groupId>
@@ -53,7 +51,6 @@
   		<groupId>com.argo</groupId>
   		<artifactId>arirang-morph</artifactId>
   		<version>1.0.0</version>
-  		<scope>test</scope>
    	</dependency>
   </dependencies>
   <properties>
