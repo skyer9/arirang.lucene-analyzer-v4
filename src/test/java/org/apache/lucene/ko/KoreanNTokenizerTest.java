@@ -47,6 +47,7 @@ public class KoreanNTokenizerTest extends TestCase {
 
     public void testKoreanNTokenizer() throws Exception {
 
+		/*
         List<String> lines = IOUtils.readLines(new FileInputStream(new File("arirang.lucene-analyzer-4.6/resources/tokenizer/tokensample.txt")));
 
 //        lines = Arrays.asList(new String[]{"ショッピングセンター（英: shopping center）は、複数の小売店舗やフード・サービス業、美容院・旅行代理店などの第4次産業も入居する商業施設である。==>ショッピングセンター/英/shopping/centerは/複数の小売店舗やフード・サービス業/美容院・旅行代理店などの第4次産業も入居する商業施設である"});
@@ -71,43 +72,44 @@ public class KoreanNTokenizerTest extends TestCase {
             TestCase.assertEquals(sample[1], sb.toString());
 
         }
+		*/
 
     }
-    
+
     public void testUtils() throws Exception {
     	List<Integer> list = new ArrayList<Integer>();
     	for(int i=0;i<100;i++) {
     		list.add(i);
     	}
-    	
+
     	removeLast(list, 50);
-    	
+
     	System.out.println(list.size());
-    	
+
     	for(int i=0;i<100;i++) {
     		list.add(i);
     	}
-    	
+
     	removeLast(list, 50);
-    	
+
     	System.out.println(list.size());
-    	
+
 //    	for(int i=0;i<subList.size();i++) {
 //    		list.remove(subList.get(i));
 //    	}
 
     }
-    
+
     private void removeLast(List<Integer> list, int start) {
     	List<Integer> removed = new ArrayList();
     	for(int i=start;i<list.size();i++) {
     		removed.add(list.get(i));
     	}
-    	
+
     	for(Integer o : removed) {
     		list.remove(0);
     	}
-    	
+
     	removed = null;
     }
 
