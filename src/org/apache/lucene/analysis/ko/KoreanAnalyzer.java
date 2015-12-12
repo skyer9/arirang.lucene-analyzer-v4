@@ -40,23 +40,23 @@ import org.apache.lucene.util.Version;
  * A Korean Analyzer
  */
 public class KoreanAnalyzer extends StopwordAnalyzerBase {
-  
+
   /** Default maximum allowed token length */
   public static final int DEFAULT_MAX_TOKEN_LENGTH = 255;
 
   private int maxTokenLength = DEFAULT_MAX_TOKEN_LENGTH;
 
   private boolean bigrammable = false;
-    
+
   private boolean hasOrigin = false;
-    
+
   private boolean exactMatch = false;
   private boolean originCNoun = true;
   private boolean queryMode = false;
   private boolean wordSegment = false;
-  
+
   /** An unmodifiable set containing some common words that are usually not useful for searching. */
-  public static final CharArraySet STOP_WORDS_SET; 
+  public static final CharArraySet STOP_WORDS_SET;
   static {
     try {
       STOP_WORDS_SET = loadStopwordSet(false, KoreanAnalyzer.class, "stopwords.txt", "#");
@@ -64,43 +64,43 @@ public class KoreanAnalyzer extends StopwordAnalyzerBase {
       throw new Error("Cannot load stop words", ioe);
     }
   }
-    
+
   public KoreanAnalyzer() {
     this(Version.LUCENE_46, STOP_WORDS_SET);
   }
 
   /**
-   * ��������� ������ ���������������
+   * 검색을 위한 형태소분석
    */
   public KoreanAnalyzer(boolean exactMatch) {
     this(Version.LUCENE_46, STOP_WORDS_SET);
     this.exactMatch = exactMatch;
   }
-  
+
   public KoreanAnalyzer(Version matchVersion, String[] stopWords) throws IOException {
-    this(matchVersion, StopFilter.makeStopSet(matchVersion, stopWords));    
+    this(matchVersion, StopFilter.makeStopSet(matchVersion, stopWords));
   }
 
-  public KoreanAnalyzer(Version matchVersion) throws IOException {     
-    this(matchVersion, STOP_WORDS_SET);        
+  public KoreanAnalyzer(Version matchVersion) throws IOException {
+    this(matchVersion, STOP_WORDS_SET);
   }
-    
-  public KoreanAnalyzer(Version matchVersion, File stopwords) throws IOException {     
-    this(matchVersion, loadStopwordSet(stopwords, matchVersion));        
+
+  public KoreanAnalyzer(Version matchVersion, File stopwords) throws IOException {
+    this(matchVersion, loadStopwordSet(stopwords, matchVersion));
   }
 
   public KoreanAnalyzer(Version matchVersion, File stopwords, String encoding) throws IOException {
-    this(matchVersion, loadStopwordSet(stopwords, matchVersion));  
+    this(matchVersion, loadStopwordSet(stopwords, matchVersion));
   }
-    
+
   public KoreanAnalyzer(Version matchVersion, Reader stopwords) throws IOException {
-    this(matchVersion, loadStopwordSet(stopwords, matchVersion));            
+    this(matchVersion, loadStopwordSet(stopwords, matchVersion));
   }
 
   public KoreanAnalyzer(Version matchVersion, CharArraySet stopWords) {
-    super(matchVersion, stopWords); 
+    super(matchVersion, stopWords);
   }
-  
+
   @Override
   protected TokenStreamComponents createComponents(final String fieldName, final Reader reader) {
     final KoreanTokenizer src = new KoreanTokenizer(reader);
@@ -120,7 +120,7 @@ public class KoreanAnalyzer extends StopwordAnalyzerBase {
       }
     };
   }
-    
+
   /**
    * determine whether the bigram index term is returned or not if a input word is failed to analysis
    * If true is set, the bigram index term is returned. If false is set, the bigram index term is not returned.
@@ -128,7 +128,7 @@ public class KoreanAnalyzer extends StopwordAnalyzerBase {
   public void setBigrammable(boolean is) {
     bigrammable = is;
   }
-  
+
   /**
    * determin whether the original term is returned or not if a input word is analyzed morphically.
    */
@@ -142,14 +142,14 @@ public class KoreanAnalyzer extends StopwordAnalyzerBase {
   public void setOriginCNoun(boolean cnoun) {
     originCNoun = cnoun;
   }
-  
+
   /**
    * determin whether the original compound noun is returned or not if a input word is analyzed morphically.
    */
   public void setExactMatch(boolean exact) {
     exactMatch = exact;
   }
-  
+
   /**
    * determin whether the analyzer is running for a query processing
    */
@@ -163,10 +163,10 @@ public class KoreanAnalyzer extends StopwordAnalyzerBase {
 	public boolean isWordSegment() {
 		return wordSegment;
 	}
-	
+
 	public void setWordSegment(boolean wordSegment) {
 		this.wordSegment = wordSegment;
 	}
-  
-  
+
+
 }
