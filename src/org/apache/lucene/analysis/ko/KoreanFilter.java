@@ -37,291 +37,290 @@ import org.apache.lucene.analysis.tokenattributes.*;
 
 public final class KoreanFilter extends TokenFilter {
 
-  private final LinkedList<KoreanToken> morphQueue = new LinkedList<KoreanToken>();
-  private final MorphAnalyzer morph;
-  
-  private State currentState = null;
-  
-  private final boolean bigrammable;
-  private final boolean hasOrigin;
-  private final boolean originCNoun;
-  private final boolean queryMode;
-    
-  private final CharTermAttribute termAtt = addAttribute(CharTermAttribute.class);
-  private final PositionIncrementAttribute posIncrAtt = addAttribute(PositionIncrementAttribute.class);
-  private final PositionLengthAttribute posLenAtt = addAttribute(PositionLengthAttribute.class);
-  private final TypeAttribute typeAtt = addAttribute(TypeAttribute.class);
-  private final OffsetAttribute offsetAtt = addAttribute(OffsetAttribute.class);
-  private final MorphemeAttribute morphAtt = addAttribute(MorphemeAttribute.class);
+	private final LinkedList<KoreanToken> morphQueue = new LinkedList<KoreanToken>();
+	private final MorphAnalyzer morph;
 
-  private static final String KOREAN_TYPE = KoreanTokenizer.TYPE_KOREAN;
-    
-  public KoreanFilter(TokenStream input) {
-    this(input, true);
-  }
+	private State currentState = null;
 
-  /**
-   * 
-   * @param input  input token stream
-   * @param bigram  Whether the bigram index term return or not.
-   */
-  public KoreanFilter(TokenStream input, boolean bigram) {
-    this(input, bigram, false);
-  }
-  
-  public KoreanFilter(TokenStream input, boolean bigram, boolean has) {
-    this(input, bigram, has, false);
-  }
-  
-  public KoreanFilter(TokenStream input, boolean bigram, boolean has, boolean exactMatch) {
-    this(input, bigram, has, exactMatch, true);
-  }
+	private final boolean bigrammable;
+	private final boolean hasOrigin;
+	private final boolean originCNoun;
+	private final boolean queryMode;
 
-  public KoreanFilter(TokenStream input, boolean bigram, boolean has, boolean exactMatch, boolean cnoun) {
-	  this(input, bigram, has,exactMatch,cnoun, false);
-  }
-  
-  public KoreanFilter(TokenStream input, boolean bigram, boolean has, boolean exactMatch, boolean cnoun, boolean isQuery) {
-    super(input);
-    this.bigrammable = bigram;
-    this.hasOrigin = has;
-    this.originCNoun = cnoun;
-    this.morph = new MorphAnalyzer();
-    this.morph.setExactCompound(exactMatch);
-    this.queryMode = isQuery;
-  }
-  
-  public boolean incrementToken() throws IOException {
-    if (!morphQueue.isEmpty()) {
-      restoreState(currentState);
-      setAttributesFromQueue(false);
-      return true;
-    }
+	private final CharTermAttribute termAtt = addAttribute(CharTermAttribute.class);
+	private final PositionIncrementAttribute posIncrAtt = addAttribute(PositionIncrementAttribute.class);
+	private final PositionLengthAttribute posLenAtt = addAttribute(PositionLengthAttribute.class);
+	private final TypeAttribute typeAtt = addAttribute(TypeAttribute.class);
+	private final OffsetAttribute offsetAtt = addAttribute(OffsetAttribute.class);
+	private final MorphemeAttribute morphAtt = addAttribute(MorphemeAttribute.class);
 
-    while (input.incrementToken()) {
-      final String type = typeAtt.type();
-      if (KOREAN_TYPE.equals(type)) {
-        try {
-			analysisKorean(termAtt.toString());
-		} catch (MorphException e) {
-			throw new RuntimeException(e);
+	private static final String KOREAN_TYPE = KoreanTokenizer.TYPE_KOREAN;
+
+	public KoreanFilter(TokenStream input) {
+		this(input, true);
+	}
+
+	/**
+	 *
+	 * @param input  input token stream
+	 * @param bigram  Whether the bigram index term return or not.
+	 */
+	public KoreanFilter(TokenStream input, boolean bigram) {
+		this(input, bigram, false);
+	}
+
+	public KoreanFilter(TokenStream input, boolean bigram, boolean has) {
+		this(input, bigram, has, false);
+	}
+
+	public KoreanFilter(TokenStream input, boolean bigram, boolean has, boolean exactMatch) {
+		this(input, bigram, has, exactMatch, true);
+	}
+
+	public KoreanFilter(TokenStream input, boolean bigram, boolean has, boolean exactMatch, boolean cnoun) {
+		this(input, bigram, has,exactMatch,cnoun, false);
+	}
+
+	public KoreanFilter(TokenStream input, boolean bigram, boolean has, boolean exactMatch, boolean cnoun, boolean isQuery) {
+		super(input);
+		this.bigrammable = bigram;
+		this.hasOrigin = has;
+		this.originCNoun = cnoun;
+		this.morph = new MorphAnalyzer();
+		this.morph.setExactCompound(exactMatch);
+		this.queryMode = isQuery;
+	}
+
+	public boolean incrementToken() throws IOException {
+		if (!morphQueue.isEmpty()) {
+			restoreState(currentState);
+			setAttributesFromQueue(false);
+			return true;
 		}
-      } else {
-        return true; // pass anything else thru
-      }        
-  
-      if (!morphQueue.isEmpty()) {
-        setAttributesFromQueue(true);
-        return true;
-      }
-    }
 
-    return false;
-  }
-  
+		while (input.incrementToken()) {
+			final String type = typeAtt.type();
+			if (KOREAN_TYPE.equals(type)) {
+				try {
+					analysisKorean(termAtt.toString());
+				} catch (MorphException e) {
+					throw new RuntimeException(e);
+				}
+			} else {
+				return true; // pass anything else thru
+			}
 
-  private void setAttributesFromQueue(boolean isFirst) {
-    final KoreanToken iw = morphQueue.removeFirst();
-    if (isFirst && !morphQueue.isEmpty()) {
-      // our queue has more elements remaining (e.g. we decompounded)
-      // capture state for those. We set the term attribute to be empty
-      // so we save lots of array copying later.
-      termAtt.setEmpty();
-      currentState = captureState();
-    }
- 
-    termAtt.setEmpty().append(iw.getTerm());
-    offsetAtt.setOffset(iw.getOffset(), iw.getOffset() + iw.getLength());
-    morphAtt.setToken(iw);
+			if (!morphQueue.isEmpty()) {
+				setAttributesFromQueue(true);
+				return true;
+			}
+		}
 
-    // on the first Token we preserve incoming increment:
-    if (!isFirst) {
-      posIncrAtt.setPositionIncrement(iw.getPosInc());
-    }
-    
-    // TODO: How to handle PositionLengthAttribute correctly?
-  }
-  
-  /**
-   * Analyze korean text
- * @throws MorphException 
-   */
-  private void analysisKorean(String input) throws MorphException {
+		return false;
+	}
 
-	input = trimHangul(input);
-    List<AnalysisOutput> outputs = morph.analyze(input);
-    if(outputs.size()==0) return;
-    
-    Map<String,KoreanToken> map = new LinkedHashMap<String,KoreanToken>();
-    if(hasOrigin) map.put("0:"+input, new KoreanToken(input,offsetAtt.startOffset()));
 
-    extractKeyword(outputs,offsetAtt.startOffset(), map, 0); 
-    
-//    if(outputs.get(0).getScore()>=AnalysisOutput.SCORE_COMPOUNDS) {
-//      extractKeyword(outputs,offsetAtt.startOffset(), map, 0);      
-////    } else {
-////      // check whether the input text has some insert spacing errors.
-////      List<AnalysisOutput> list = wsAnal.analyze(input);      
-////      List<AnalysisOutput> results = new ArrayList<AnalysisOutput>();    
-////      if(list.size()>1 && wsAnal.getOutputScore(list)>AnalysisOutput.SCORE_ANALYSIS) {
-////        int offset = 0;
-////        for(AnalysisOutput o : list) {
-////          if(hasOrigin) map.put(o.getSource(), new Token(o.getSource(),offsetAtt.startOffset()+offset,1));        
-////          results.addAll(morph.analyze(o.getSource()));
-////          offset += o.getSource().length();
-////        }       
-////      } else {
-////        results.addAll(outputs);
-////      }
-////      extractKeyword(results, offsetAtt.startOffset(), map, 0);
-//    }
+	private void setAttributesFromQueue(boolean isFirst) {
+		final KoreanToken iw = morphQueue.removeFirst();
+		if (isFirst && !morphQueue.isEmpty()) {
+			// our queue has more elements remaining (e.g. we decompounded)
+			// capture state for those. We set the term attribute to be empty
+			// so we save lots of array copying later.
+			termAtt.setEmpty();
+			currentState = captureState();
+		}
 
-      Collection<KoreanToken> values = map.values();
-      for(KoreanToken kt : values) {
-          kt.setOutputs(outputs);
-      }
+		termAtt.setEmpty().append(iw.getTerm());
+		offsetAtt.setOffset(iw.getOffset(), iw.getOffset() + iw.getLength());
+		morphAtt.setToken(iw);
 
-      morphQueue.addAll(map.values());
-  }
-  
-  /**
-   * remove the preserved punctuation character followed by the input hangul word. (ex. 찾아서-)
-   * @param input
-   * @return
-   */
-  private String trimHangul(String input) {
-	  
-	  int minpos = input.length();
-	  for(int i=input.length()-1 ; i>=0 ; i--) {
-		  if(MorphUtil.isHanSyllable(input.charAt(i))) break;
-		  minpos = i;
-	  }
-	  
-	  if(minpos == input.length()) return input;
-	  
-	  return input.substring(0, minpos);
-  }
-  
-  private void extractKeyword(List<AnalysisOutput> outputs, int startoffset, Map<String,KoreanToken> map, int position) {
+		// on the first Token we preserve incoming increment:
+		if (!isFirst) {
+			posIncrAtt.setPositionIncrement(iw.getPosInc());
+		}
 
-    int maxDecompounds = 0;
-    int maxStem = 0;
-    
-    for(AnalysisOutput output : outputs) 
-    {
-      if(queryMode && hasOrigin && 
-    		  output.getScore()==AnalysisOutput.SCORE_ANALYSIS && output.getCNounList().size()<2) break;
-      if(output.getPos()==PatternConstants.POS_VERB) continue; // extract keywords from only noun
-      if(!originCNoun&&output.getCNounList().size()>0) continue; // except compound nound
-      int inc = map.size()>0 ? 0 : 1;
-      map.put(position+":"+output.getStem(), new KoreanToken(output.getStem(),startoffset,inc));
-        
-      if(output.getStem().length()>maxStem) maxStem = output.getStem().length();
-      if(output.getCNounList().size()>maxDecompounds) maxDecompounds = output.getCNounList().size();
-      
-      // extract the first stem as the keyword for the query processing
-      if(queryMode) break;
-    }
+		// TODO: How to handle PositionLengthAttribute correctly?
+	}
 
-    if(maxDecompounds>1) 
-    {      
-      for(int i=0; i<maxDecompounds; i++) 
-      {
-        position += i;
-        
-        int cPosition = position;
-        for(AnalysisOutput output : outputs) 
-        {
-          if(output.getPos()==PatternConstants.POS_VERB ||
-              output.getCNounList().size()<=i) continue;     
-          
-          CompoundEntry cEntry = output.getCNounList().get(i);
-          int cStartoffset = getStartOffset(output, i) + startoffset;
-          int inc = i==0 ? 0 : 1;
-          map.put((cPosition)+":"+cEntry.getWord(), 
-              new KoreanToken(cEntry.getWord(),cStartoffset,inc));
-          
-          if(bigrammable&&!cEntry.isExist()) 
-            cPosition = addBiagramToMap(cEntry.getWord(), cStartoffset, map, cPosition);
-          
-          // extract  the words derived from the first stem as the keyword for the query processing
-          if(queryMode) break;
-        }                
-      }      
-    } 
-    else 
-    {
-      for(AnalysisOutput output : outputs) 
-      {
-        if(output.getPos()==PatternConstants.POS_VERB) continue;
-        
-        if(bigrammable&&output.getScore()<AnalysisOutput.SCORE_COMPOUNDS) 
-          addBiagramToMap(output.getStem(), startoffset, map, position);   
-      }  
-    }    
-  }
-  
-  private int addBiagramToMap(String input, int startoffset, Map<String, KoreanToken> map, int position) {
-    int offset = 0;
-    int strlen = input.length();
-    if(strlen<2) return position;
-    
-    while(offset<strlen-1) {
-      
-      int inc = offset==0 ? 0 : 1;
-      
-      if(isAlphaNumChar(input.charAt(offset))) {
-        String text = findAlphaNumeric(input.substring(offset));
-        map.put(position+":"+text,  new KoreanToken(text,startoffset+offset,inc));
-        offset += text.length();
-      } else {
-        String text = input.substring(offset,
-            offset+2>strlen?strlen:offset+2);
-        map.put(position+":"+text,  new KoreanToken(text,startoffset+offset,inc));
-        offset++;
-      }
-      
-      position += 1;
-    }
-    
-    return position-1;
-  }
-  
-  /**
-   * return the start offset of current decompounds entry.
-   * @param output  morphlogical analysis output
-   * @param index     the index of current decompounds entry
-   * @return        the start offset of current decoumpounds entry
-   */
-  private int getStartOffset(AnalysisOutput output, int index) {    
-    int sOffset = 0;
-    for(int i=0; i<index;i++) {
-      sOffset += output.getCNounList().get(i).getWord().length();
-    }
-    return sOffset;
-  }
-  
-  private String findAlphaNumeric(String text) {
-    int pos = 0;
-    for(int i=0;i<text.length();i++) {
-      if(!isAlphaNumChar(text.charAt(i))) break;
-      pos++;
-    }    
-    if(pos<text.length()) pos += 1;
-    
-    return text.substring(0,pos);
-  }
-  
-  private boolean isAlphaNumChar(int c) {
-    if((c>=48&&c<=57)||(c>=65&&c<=122)) return true;    
-    return false;
-  }
-  
-  @Override
-  public void reset() throws IOException {
-    super.reset();
-    morphQueue.clear();
-    currentState = null;
-  }
+	/**
+	 * Analyze korean text
+	 * @throws MorphException
+	 */
+	private void analysisKorean(String input) throws MorphException {
 
+		input = trimHangul(input);
+		List<AnalysisOutput> outputs = morph.analyze(input);
+		if(outputs.size()==0) return;
+
+		Map<String,KoreanToken> map = new LinkedHashMap<String,KoreanToken>();
+		if(hasOrigin) map.put("0:"+input, new KoreanToken(input,offsetAtt.startOffset()));
+
+		extractKeyword(outputs,offsetAtt.startOffset(), map, 0);
+
+		//    if(outputs.get(0).getScore()>=AnalysisOutput.SCORE_COMPOUNDS) {
+		//      extractKeyword(outputs,offsetAtt.startOffset(), map, 0);
+		////    } else {
+		////      // check whether the input text has some insert spacing errors.
+		////      List<AnalysisOutput> list = wsAnal.analyze(input);
+		////      List<AnalysisOutput> results = new ArrayList<AnalysisOutput>();
+		////      if(list.size()>1 && wsAnal.getOutputScore(list)>AnalysisOutput.SCORE_ANALYSIS) {
+		////        int offset = 0;
+		////        for(AnalysisOutput o : list) {
+		////          if(hasOrigin) map.put(o.getSource(), new Token(o.getSource(),offsetAtt.startOffset()+offset,1));
+		////          results.addAll(morph.analyze(o.getSource()));
+		////          offset += o.getSource().length();
+		////        }
+		////      } else {
+		////        results.addAll(outputs);
+		////      }
+		////      extractKeyword(results, offsetAtt.startOffset(), map, 0);
+		//    }
+
+		Collection<KoreanToken> values = map.values();
+		for(KoreanToken kt : values) {
+			kt.setOutputs(outputs);
+		}
+
+		morphQueue.addAll(map.values());
+	}
+
+	/**
+	 * remove the preserved punctuation character followed by the input hangul word. (ex. 찾아서-)
+	 * @param input
+	 * @return
+	 */
+	private String trimHangul(String input) {
+
+		int minpos = input.length();
+		for(int i=input.length()-1 ; i>=0 ; i--) {
+			if(MorphUtil.isHanSyllable(input.charAt(i))) break;
+			minpos = i;
+		}
+
+		if(minpos == input.length()) return input;
+
+		return input.substring(0, minpos);
+	}
+
+	private void extractKeyword(List<AnalysisOutput> outputs, int startoffset, Map<String,KoreanToken> map, int position) {
+
+		int maxDecompounds = 0;
+		int maxStem = 0;
+
+		for(AnalysisOutput output : outputs)
+			{
+				if(queryMode && hasOrigin &&
+				   output.getScore()==AnalysisOutput.SCORE_ANALYSIS && output.getCNounList().size()<2) break;
+				if(output.getPos()==PatternConstants.POS_VERB) continue; // extract keywords from only noun
+				if(!originCNoun&&output.getCNounList().size()>0) continue; // except compound nound
+				int inc = map.size()>0 ? 0 : 1;
+				map.put(position+":"+output.getStem(), new KoreanToken(output.getStem(),startoffset,inc));
+
+				if(output.getStem().length()>maxStem) maxStem = output.getStem().length();
+				if(output.getCNounList().size()>maxDecompounds) maxDecompounds = output.getCNounList().size();
+
+				// extract the first stem as the keyword for the query processing
+				if(queryMode) break;
+			}
+
+		if(maxDecompounds>1)
+			{
+				for(int i=0; i<maxDecompounds; i++)
+					{
+						position += i;
+
+						int cPosition = position;
+						for(AnalysisOutput output : outputs)
+							{
+								if(output.getPos()==PatternConstants.POS_VERB ||
+								   output.getCNounList().size()<=i) continue;
+
+								CompoundEntry cEntry = output.getCNounList().get(i);
+								int cStartoffset = getStartOffset(output, i) + startoffset;
+								int inc = i==0 ? 0 : 1;
+								map.put((cPosition)+":"+cEntry.getWord(),
+										new KoreanToken(cEntry.getWord(),cStartoffset,inc));
+
+								if(bigrammable&&!cEntry.isExist())
+									cPosition = addBiagramToMap(cEntry.getWord(), cStartoffset, map, cPosition);
+
+								// extract  the words derived from the first stem as the keyword for the query processing
+								if(queryMode) break;
+							}
+					}
+			}
+		else
+			{
+				for(AnalysisOutput output : outputs)
+					{
+						if(output.getPos()==PatternConstants.POS_VERB) continue;
+
+						if(bigrammable&&output.getScore()<AnalysisOutput.SCORE_COMPOUNDS)
+							addBiagramToMap(output.getStem(), startoffset, map, position);
+					}
+			}
+	}
+
+	private int addBiagramToMap(String input, int startoffset, Map<String, KoreanToken> map, int position) {
+		int offset = 0;
+		int strlen = input.length();
+		if(strlen<2) return position;
+
+		while(offset<strlen-1) {
+
+			int inc = offset==0 ? 0 : 1;
+
+			if(isAlphaNumChar(input.charAt(offset))) {
+				String text = findAlphaNumeric(input.substring(offset));
+				map.put(position+":"+text,  new KoreanToken(text,startoffset+offset,inc));
+				offset += text.length();
+			} else {
+				String text = input.substring(offset,
+											  offset+2>strlen?strlen:offset+2);
+				map.put(position+":"+text,  new KoreanToken(text,startoffset+offset,inc));
+				offset++;
+			}
+
+			position += 1;
+		}
+
+		return position-1;
+	}
+
+	/**
+	 * return the start offset of current decompounds entry.
+	 * @param output  morphlogical analysis output
+	 * @param index     the index of current decompounds entry
+	 * @return        the start offset of current decoumpounds entry
+	 */
+	private int getStartOffset(AnalysisOutput output, int index) {
+		int sOffset = 0;
+		for(int i=0; i<index;i++) {
+			sOffset += output.getCNounList().get(i).getWord().length();
+		}
+		return sOffset;
+	}
+
+	private String findAlphaNumeric(String text) {
+		int pos = 0;
+		for(int i=0;i<text.length();i++) {
+			if(!isAlphaNumChar(text.charAt(i))) break;
+			pos++;
+		}
+		if(pos<text.length()) pos += 1;
+
+		return text.substring(0,pos);
+	}
+
+	private boolean isAlphaNumChar(int c) {
+		if((c>=48&&c<=57)||(c>=65&&c<=122)) return true;
+		return false;
+	}
+
+	@Override
+	public void reset() throws IOException {
+		super.reset();
+		morphQueue.clear();
+		currentState = null;
+	}
 }
