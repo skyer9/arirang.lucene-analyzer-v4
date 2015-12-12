@@ -165,7 +165,6 @@ public final class KoreanTokenizer extends Tokenizer {
         return true;
     }
 
-
     private boolean isTokenChar(int c) {
         if(Character.isLetter(c) || Character.isDigit(c) || isPreserveSymbol((char)c)) return true;
         return false;
@@ -210,5 +209,4 @@ public final class KoreanTokenizer extends Tokenizer {
         finalOffset = 0;
         ioBuffer.reset(); // make sure to reset the IO buffer!!
     }
-
 }
