@@ -191,6 +191,14 @@ public final class KoreanFilter extends TokenFilter {
 	 */
 	private String trimHangul(String input) {
 
+        try {
+            if (DictionaryUtil.getAllNoun(input) != null) {
+                return input;
+            }
+        } catch (MorphException e) {
+            throw new RuntimeException(e);
+        }
+
 		int minpos = input.length();
 		for(int i=input.length()-1 ; i>=0 ; i--) {
 			if(MorphUtil.isHanSyllable(input.charAt(i))) break;
