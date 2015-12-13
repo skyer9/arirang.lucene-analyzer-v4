@@ -2,13 +2,13 @@ package org.apache.lucene.analysis.ko;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
+ * contributor license agreements.	See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The ASF licenses this file to You under the Apache License, Version 2.0
  * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
+ * the License.	 You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *	   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -62,7 +62,7 @@ public final class KoreanFilter extends TokenFilter {
 
 	/**
 	 *
-	 * @param input  input token stream
+	 * @param input	 input token stream
 	 * @param bigram  Whether the bigram index term return or not.
 	 */
 	public KoreanFilter(TokenStream input, boolean bigram) {
@@ -157,24 +157,24 @@ public final class KoreanFilter extends TokenFilter {
 
 		extractKeyword(outputs,offsetAtt.startOffset(), map, 0);
 
-		//    if(outputs.get(0).getScore()>=AnalysisOutput.SCORE_COMPOUNDS) {
-		//      extractKeyword(outputs,offsetAtt.startOffset(), map, 0);
-		////    } else {
-		////      // check whether the input text has some insert spacing errors.
-		////      List<AnalysisOutput> list = wsAnal.analyze(input);
-		////      List<AnalysisOutput> results = new ArrayList<AnalysisOutput>();
-		////      if(list.size()>1 && wsAnal.getOutputScore(list)>AnalysisOutput.SCORE_ANALYSIS) {
-		////        int offset = 0;
-		////        for(AnalysisOutput o : list) {
-		////          if(hasOrigin) map.put(o.getSource(), new Token(o.getSource(),offsetAtt.startOffset()+offset,1));
-		////          results.addAll(morph.analyze(o.getSource()));
-		////          offset += o.getSource().length();
-		////        }
-		////      } else {
-		////        results.addAll(outputs);
-		////      }
-		////      extractKeyword(results, offsetAtt.startOffset(), map, 0);
-		//    }
+		//	  if(outputs.get(0).getScore()>=AnalysisOutput.SCORE_COMPOUNDS) {
+		//		extractKeyword(outputs,offsetAtt.startOffset(), map, 0);
+		////	} else {
+		////	  // check whether the input text has some insert spacing errors.
+		////	  List<AnalysisOutput> list = wsAnal.analyze(input);
+		////	  List<AnalysisOutput> results = new ArrayList<AnalysisOutput>();
+		////	  if(list.size()>1 && wsAnal.getOutputScore(list)>AnalysisOutput.SCORE_ANALYSIS) {
+		////		int offset = 0;
+		////		for(AnalysisOutput o : list) {
+		////		  if(hasOrigin) map.put(o.getSource(), new Token(o.getSource(),offsetAtt.startOffset()+offset,1));
+		////		  results.addAll(morph.analyze(o.getSource()));
+		////		  offset += o.getSource().length();
+		////		}
+		////	  } else {
+		////		results.addAll(outputs);
+		////	  }
+		////	  extractKeyword(results, offsetAtt.startOffset(), map, 0);
+		//	  }
 
 		Collection<KoreanToken> values = map.values();
 		for(KoreanToken kt : values) {
@@ -191,13 +191,13 @@ public final class KoreanFilter extends TokenFilter {
 	 */
 	private String trimHangul(String input) {
 
-        try {
-            if (DictionaryUtil.getAllNoun(input) != null) {
-                return input;
-            }
-        } catch (MorphException e) {
-            throw new RuntimeException(e);
-        }
+		try {
+			if (DictionaryUtil.getAllNoun(input) != null) {
+				return input;
+			}
+		} catch (MorphException e) {
+			throw new RuntimeException(e);
+		}
 
 		int minpos = input.length();
 		for(int i=input.length()-1 ; i>=0 ; i--) {
@@ -252,7 +252,7 @@ public final class KoreanFilter extends TokenFilter {
 								if(bigrammable&&!cEntry.isExist())
 									cPosition = addBiagramToMap(cEntry.getWord(), cStartoffset, map, cPosition);
 
-								// extract  the words derived from the first stem as the keyword for the query processing
+								// extract	the words derived from the first stem as the keyword for the query processing
 								if(queryMode) break;
 							}
 					}
@@ -280,12 +280,12 @@ public final class KoreanFilter extends TokenFilter {
 
 			if(isAlphaNumChar(input.charAt(offset))) {
 				String text = findAlphaNumeric(input.substring(offset));
-				map.put(position+":"+text,  new KoreanToken(text,startoffset+offset,inc));
+				map.put(position+":"+text,	new KoreanToken(text,startoffset+offset,inc));
 				offset += text.length();
 			} else {
 				String text = input.substring(offset,
 											  offset+2>strlen?strlen:offset+2);
-				map.put(position+":"+text,  new KoreanToken(text,startoffset+offset,inc));
+				map.put(position+":"+text,	new KoreanToken(text,startoffset+offset,inc));
 				offset++;
 			}
 
@@ -298,8 +298,8 @@ public final class KoreanFilter extends TokenFilter {
 	/**
 	 * return the start offset of current decompounds entry.
 	 * @param output  morphlogical analysis output
-	 * @param index     the index of current decompounds entry
-	 * @return        the start offset of current decoumpounds entry
+	 * @param index		the index of current decompounds entry
+	 * @return		  the start offset of current decoumpounds entry
 	 */
 	private int getStartOffset(AnalysisOutput output, int index) {
 		int sOffset = 0;
