@@ -66,14 +66,14 @@ public class KoreanAnalyzer extends StopwordAnalyzerBase {
 	}
 
 	public KoreanAnalyzer() {
-		this(Version.LUCENE_46, STOP_WORDS_SET);
+		this(Version.LUCENE_47, STOP_WORDS_SET);
 	}
 
 	/**
 	 * 검색을 위한 형태소분석
 	 */
 	public KoreanAnalyzer(boolean exactMatch) {
-		this(Version.LUCENE_46, STOP_WORDS_SET);
+		this(Version.LUCENE_47, STOP_WORDS_SET);
 		this.exactMatch = exactMatch;
 	}
 

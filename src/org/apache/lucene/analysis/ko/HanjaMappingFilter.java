@@ -22,7 +22,7 @@ public final class HanjaMappingFilter extends TokenFilter {
     private final LinkedList<KoreanToken> outQueue = new LinkedList<KoreanToken>();
 
     private State currentState = null;
-    
+
     private static int maxCandidateSize = 5;
 
     private final CompoundNounAnalyzer cnAnalyzer = new CompoundNounAnalyzer();
@@ -143,7 +143,7 @@ public final class HanjaMappingFilter extends TokenFilter {
         candiList.add(new StringBuffer());
 
         List<StringBuffer> removeList = new ArrayList<StringBuffer>(); // 제거될 후보를 저장
-        
+
         for(int i=0;i<term.length();i++) {
 
             char[] chs = HanjaUtils.convertToHangul(term.charAt(i));
@@ -163,12 +163,12 @@ public final class HanjaMappingFilter extends TokenFilter {
 
                     sb.append(chs[k]);
                     if(k>0)  candiList.add(sb);
-                    
+
                 	Iterator<String[]> iter = DictionaryUtil.findWithPrefix(sb.toString());
                     if(!iter.hasNext() && !removeList.contains(sb)) removeList.add(sb); // 사전에 없으면 삭제 후보
                 }
             }
-            
+
             // 후보가 정해진 갯수보다 크면 이후는 삭제하여 지나친 메모리 사용을 방지한다.
             if(candiList.size()>maxCandidateSize) {
             	removeLast(candiList,removeList, maxCandidateSize);
@@ -181,10 +181,10 @@ public final class HanjaMappingFilter extends TokenFilter {
 			}
 			removeList.clear();
 	    }
-	        
+
         int noCandidate = candiList.size();
         int maxDecompounds = 0;
-        List<List<CompoundEntry>> compoundList = new ArrayList();
+        List<List<CompoundEntry>> compoundList = new ArrayList<List<CompoundEntry>>();
         for(int i=0;i<noCandidate;i++) {
             outQueue.add(new KoreanToken(candiList.get(i).toString(),offsetAtt.startOffset(), 0));
             List<CompoundEntry> results = confirmCNoun(candiList.get(i).toString());
@@ -200,9 +200,9 @@ public final class HanjaMappingFilter extends TokenFilter {
             int[] offset =new int[noCandidate];
             int[] index =new int[noCandidate];
             int minOffset = term.length();
-            
+
             for(int i=0;i<maxDecompounds;i++) {
-            	Map dupcheck = new HashMap();
+				Map<String, CompoundEntry> dupcheck = new HashMap<String, CompoundEntry>();
             	int min = term.length();
             	boolean done = false;
             	for(int j=0;j<noCandidate;j++){
@@ -247,15 +247,15 @@ public final class HanjaMappingFilter extends TokenFilter {
     	for(int i=start;i<list.size();i++) {
     		removed.add(list.get(i));
     	}
-    	
+
     	for(Object o : removed) {
     		list.remove(o);
     		removeCandi.remove(o);
     	}
-    	
+
     	removed=null;
     }
-    
+
     @Override
     public void reset() throws IOException {
         super.reset();

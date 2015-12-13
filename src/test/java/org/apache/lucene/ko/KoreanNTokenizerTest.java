@@ -101,7 +101,7 @@ public class KoreanNTokenizerTest extends TestCase {
     }
 
     private void removeLast(List<Integer> list, int start) {
-    	List<Integer> removed = new ArrayList();
+    	List<Integer> removed = new ArrayList<Integer>();
     	for(int i=start;i<list.size();i++) {
     		removed.add(list.get(i));
     	}
