@@ -23,6 +23,7 @@ import java.util.Map;
 import org.apache.lucene.analysis.Tokenizer;
 import org.apache.lucene.analysis.util.TokenizerFactory;
 import org.apache.lucene.util.AttributeSource;
+import org.apache.lucene.util.AttributeFactory;
 
 public class KoreanTokenizerFactory extends TokenizerFactory {
 
@@ -37,7 +38,7 @@ public class KoreanTokenizerFactory extends TokenizerFactory {
   }
 
   @Override
-  public Tokenizer create(AttributeSource.AttributeFactory factory, Reader input) {
+  public Tokenizer create(AttributeFactory factory, Reader input) {
     return new KoreanTokenizer(factory, input);
   }
 }
